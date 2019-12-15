@@ -28,14 +28,15 @@ KUBE_PS1_SYMBOL_DEFAULT=${KUBE_PS1_SYMBOL_DEFAULT:-$'\u2388 '}
 KUBE_PS1_SYMBOL_USE_IMG="${KUBE_PS1_SYMBOL_USE_IMG:-false}"
 KUBE_PS1_NS_ENABLE="${KUBE_PS1_NS_ENABLE:-true}"
 KUBE_PS1_CONTEXT_ENABLE="${KUBE_PS1_CONTEXT_ENABLE:-true}"
-KUBE_PS1_PREFIX="${KUBE_PS1_PREFIX-(}"
+KUBE_PS1_PREFIX="${KUBE_PS1_PREFIX-[}"
 KUBE_PS1_SEPARATOR="${KUBE_PS1_SEPARATOR-|}"
 KUBE_PS1_DIVIDER="${KUBE_PS1_DIVIDER-:}"
-KUBE_PS1_SUFFIX="${KUBE_PS1_SUFFIX-)}"
+KUBE_PS1_SUFFIX="${KUBE_PS1_SUFFIX-]}"
 KUBE_PS1_SYMBOL_COLOR="${KUBE_PS1_SYMBOL_COLOR-blue}"
-KUBE_PS1_CTX_COLOR="${KUBE_PS1_CTX_COLOR-red}"
-KUBE_PS1_NS_COLOR="${KUBE_PS1_NS_COLOR-cyan}"
+KUBE_PS1_CTX_COLOR="${KUBE_PS1_CTX_COLOR-magenta}"
+KUBE_PS1_NS_COLOR="${KUBE_PS1_NS_COLOR-green}"
 KUBE_PS1_BG_COLOR="${KUBE_PS1_BG_COLOR}"
+KUBE_PS1_PREFIX_COLOR="${KUBE_PS1_PREFIX_COLOR-cyan}"
 KUBE_PS1_KUBECONFIG_CACHE="${KUBECONFIG}"
 KUBE_PS1_DISABLE_PATH="${HOME}/.kube/kube-ps1/disabled"
 KUBE_PS1_LAST_TIME=0
@@ -327,10 +328,7 @@ kubeoff() {
   KUBE_PS1_ENABLED=off
 }
 
-# Build our prompt
-kube_ps1() {
-  [[ "${KUBE_PS1_ENABLED}" == "off" ]] && return
-  [[ -z "${KUBE_PS1_CONTEXT}" ]] && [[ "${KUBE_PS1_CONTEXT_ENABLE}" == true ]] && return
+_build_ps1() {
 
   local KUBE_PS1
   local KUBE_PS1_RESET_COLOR="${_KUBE_PS1_OPEN_ESC}${_KUBE_PS1_DEFAULT_FG}${_KUBE_PS1_CLOSE_ESC}"
@@ -339,14 +337,14 @@ kube_ps1() {
   [[ -n "${KUBE_PS1_BG_COLOR}" ]] && KUBE_PS1+="$(_kube_ps1_color_bg ${KUBE_PS1_BG_COLOR})"
 
   # Prefix
-  [[ -n "${KUBE_PS1_PREFIX}" ]] && KUBE_PS1+="${KUBE_PS1_PREFIX}"
+  [[ -n "${KUBE_PS1_PREFIX}" ]] && KUBE_PS1+="$(_kube_ps1_color_fg ${KUBE_PS1_PREFIX_COLOR})${KUBE_PS1_PREFIX}${KUBE_PS1_RESET_COLOR}"
 
-  # Symbol
-  KUBE_PS1+="$(_kube_ps1_color_fg $KUBE_PS1_SYMBOL_COLOR)$(_kube_ps1_symbol)${KUBE_PS1_RESET_COLOR}"
+  # # Symbol
+  # KUBE_PS1+="$(_kube_ps1_color_fg $KUBE_PS1_SYMBOL_COLOR)$(_kube_ps1_symbol)${KUBE_PS1_RESET_COLOR}"
 
-  if [[ -n "${KUBE_PS1_SEPARATOR}" ]] && [[ "${KUBE_PS1_SYMBOL_ENABLE}" == true ]]; then
-    KUBE_PS1+="${KUBE_PS1_SEPARATOR}"
-  fi
+  # if [[ -n "${KUBE_PS1_SEPARATOR}" ]] && [[ "${KUBE_PS1_SYMBOL_ENABLE}" == true ]]; then
+  #   KUBE_PS1+="${KUBE_PS1_SEPARATOR}"
+  # fi
 
   # Context
   if [[ "${KUBE_PS1_CONTEXT_ENABLE}" == true ]]; then
@@ -362,10 +360,45 @@ kube_ps1() {
   fi
 
   # Suffix
-  [[ -n "${KUBE_PS1_SUFFIX}" ]] && KUBE_PS1+="${KUBE_PS1_SUFFIX}"
+  [[ -n "${KUBE_PS1_SUFFIX}" ]] && KUBE_PS1+="$(_kube_ps1_color_fg ${KUBE_PS1_PREFIX_COLOR})${KUBE_PS1_SUFFIX}${KUBE_PS1_RESET_COLOR}"
 
   # Close Background color if defined
   [[ -n "${KUBE_PS1_BG_COLOR}" ]] && KUBE_PS1+="${_KUBE_PS1_OPEN_ESC}${_KUBE_PS1_DEFAULT_BG}${_KUBE_PS1_CLOSE_ESC}"
 
-  echo "${KUBE_PS1}"
+  echo "$KUBE_PS1"
+}
+
+# Build our prompt
+kube_ps1() {
+  
+  if [[ "${KUBE_PS1_ENABLED}" == "off" ]]; then
+    echo "$ "
+    return
+  fi
+
+  if [[ -z "${KUBE_PS1_CONTEXT}" ]] && [[ "${KUBE_PS1_CONTEXT_ENABLE}" == true ]]; then
+    echo "$ "
+    return
+  fi
+  
+  local KUBE_PS1
+  local KUBE_PS1_RESET_COLOR="${_KUBE_PS1_OPEN_ESC}${_KUBE_PS1_DEFAULT_FG}${_KUBE_PS1_CLOSE_ESC}"
+
+  KUBE_PS1=$(_build_ps1)
+  
+  # Add Symbol
+  KUBE_PS1+=" $(_kube_ps1_color_fg $KUBE_PS1_SYMBOL_COLOR)$(_kube_ps1_symbol)${KUBE_PS1_RESET_COLOR}"
+
+  # Close Background color if defined
+  [[ -n "${KUBE_PS1_BG_COLOR}" ]] && KUBE_PS1+="${_KUBE_PS1_OPEN_ESC}${_KUBE_PS1_DEFAULT_BG}${_KUBE_PS1_CLOSE_ESC}"
+
+  echo " ${KUBE_PS1}"
+}
+
+kube_ps1_without_symbol() {
+  
+  [[ "${KUBE_PS1_ENABLED}" == "off" ]] && return
+  [[ -z "${KUBE_PS1_CONTEXT}" ]] && [[ "${KUBE_PS1_CONTEXT_ENABLE}" == true ]] && return
+    
+  echo " $(_build_ps1)"
 }
