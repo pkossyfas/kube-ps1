@@ -273,11 +273,11 @@ _kube_ps1_get_context_ns() {
 # Set kube-ps1 shell defaults
 _kube_ps1_init
 
-_kubeon_usage() {
+_kbon_usage() {
   cat <<"EOF"
 Toggle kube-ps1 prompt on
 
-Usage: kubeon [-g | --global] [-h | --help]
+Usage: kbon [-g | --global] [-h | --help]
 
 With no arguments, turn off kube-ps1 status for this shell instance (default).
 
@@ -286,11 +286,11 @@ With no arguments, turn off kube-ps1 status for this shell instance (default).
 EOF
 }
 
-_kubeoff_usage() {
+_kboff_usage() {
   cat <<"EOF"
 Toggle kube-ps1 prompt off
 
-Usage: kubeoff [-g | --global] [-h | --help]
+Usage: kboff [-g | --global] [-h | --help]
 
 With no arguments, turn off kube-ps1 status for this shell instance (default).
 
@@ -299,29 +299,29 @@ With no arguments, turn off kube-ps1 status for this shell instance (default).
 EOF
 }
 
-kubeon() {
+kbon() {
   if [[ "${1}" == '-h' || "${1}" == '--help' ]]; then
-    _kubeon_usage
+    _kbon_usage
   elif [[ "${1}" == '-g' || "${1}" == '--global' ]]; then
     rm -f -- "${KUBE_PS1_DISABLE_PATH}"
   elif [[ "$#" -ne 0 ]]; then
     echo -e "error: unrecognized flag ${1}\\n"
-    _kubeon_usage
+    _kbon_usage
     return
   fi
 
   KUBE_PS1_ENABLED=on
 }
 
-kubeoff() {
+kboff() {
   if [[ "${1}" == '-h' || "${1}" == '--help' ]]; then
-    _kubeoff_usage
+    _kboff_usage
   elif [[ "${1}" == '-g' || "${1}" == '--global' ]]; then
     mkdir -p -- "$(dirname "${KUBE_PS1_DISABLE_PATH}")"
     touch -- "${KUBE_PS1_DISABLE_PATH}"
   elif [[ $# -ne 0 ]]; then
     echo "error: unrecognized flag ${1}" >&2
-    _kubeoff_usage
+    _kboff_usage
     return
   fi
 
@@ -369,7 +369,7 @@ _build_ps1() {
 }
 
 # Build our prompt
-kube_ps1() {
+ps1_kube() {
   
   if [[ "${KUBE_PS1_ENABLED}" == "off" ]]; then
     echo "$ "
@@ -395,7 +395,7 @@ kube_ps1() {
   echo " ${KUBE_PS1}"
 }
 
-kube_ps1_without_symbol() {
+ps1_kube_without_symbol() {
   
   [[ "${KUBE_PS1_ENABLED}" == "off" ]] && return
   [[ -z "${KUBE_PS1_CONTEXT}" ]] && [[ "${KUBE_PS1_CONTEXT_ENABLE}" == true ]] && return
